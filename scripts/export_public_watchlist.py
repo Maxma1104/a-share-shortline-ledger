@@ -162,6 +162,7 @@ def build_payload(rows: list[dict[str, Any]]) -> dict[str, Any]:
             "timezone": "Asia/Shanghai",
             "local_time": "18:00",
             "cron_utc": "10:00",
+            "days": "Monday-Friday",
         },
         "data_source": {"name": SOURCE, "url": SOURCE_URL},
         "privacy": (
@@ -188,7 +189,7 @@ def write_markdown(payload: dict[str, Any], path: Path) -> None:
         "",
         f"- Generated at: {payload['generated_at']} (Asia/Shanghai)",
         f"- Latest market timestamp: {payload['latest_market_timestamp'] or '-'}",
-        "- Scheduled refresh: every day at 18:00 China Standard Time",
+        "- Scheduled refresh: every Monday-Friday at 18:00 China Standard Time",
         f"- Data source: {SOURCE}, {SOURCE_URL}",
         "- Privacy: no holdings, cost basis, position size, or private review logs are exported.",
         "",

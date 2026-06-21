@@ -28,6 +28,15 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Skip watchlist activity refresh.",
     )
+    parser.add_argument(
+        "--prune-removal-days",
+        type=int,
+        default=0,
+        help=(
+            "Pass through to refresh_watchlist.py. A value above 0 hard-removes "
+            "non-holding removal candidates after the grace period."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -47,10 +56,13 @@ def run_sync(db_path: Path) -> None:
         raise SystemExit(result.returncode)
 
 
-def run_watchlist_refresh(db_path: Path) -> None:
+def run_watchlist_refresh(db_path: Path, prune_removal_days: int) -> None:
     script = Path(__file__).with_name("refresh_watchlist.py")
+    command = [sys.executable, str(script), "--db", str(db_path)]
+    if prune_removal_days > 0:
+        command.extend(["--prune-removal-days", str(prune_removal_days)])
     result = subprocess.run(
-        [sys.executable, str(script), "--db", str(db_path)],
+        command,
         text=True,
         capture_output=True,
         check=False,
@@ -170,7 +182,7 @@ def main() -> int:
         run_sync(db_path)
 
     if not args.skip_sync and not args.skip_watchlist_refresh:
-        run_watchlist_refresh(db_path)
+        run_watchlist_refresh(db_path, args.prune_removal_days)
 
     target_rows, latest_rows, holding_rows = fetch_rows(db_path)
     return print_report(target_rows, latest_rows, holding_rows)

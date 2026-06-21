@@ -5,7 +5,8 @@
   "refresh_schedule": {
     "timezone": "Asia/Shanghai",
     "local_time": "18:00",
-    "cron_utc": "10:00"
+    "cron_utc": "10:00",
+    "days": "Monday-Friday"
   },
   "data_source": {
     "name": "RSSCAST",
