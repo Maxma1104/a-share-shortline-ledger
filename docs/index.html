@@ -207,6 +207,21 @@
         margin-top: 16px;
       }
 
+      .logic-grid,
+      .project-grid {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .logic-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .project-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .step {
         border-left: 4px solid var(--accent);
         background: #fbfcfd;
@@ -214,15 +229,38 @@
         min-height: 108px;
       }
 
+      .rule,
+      .project-item {
+        background: #fbfcfd;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 14px;
+      }
+
       .step strong {
         display: block;
         margin-bottom: 8px;
       }
 
-      .step p {
+      .step p,
+      .rule p,
+      .project-item p {
         color: var(--muted);
         line-height: 1.55;
         font-size: 14px;
+      }
+
+      .rule strong,
+      .project-item strong {
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .section-lead {
+        margin-top: 8px;
+        color: var(--muted);
+        line-height: 1.7;
+        max-width: 860px;
       }
 
       .table-shell {
@@ -324,7 +362,9 @@
       @media (max-width: 840px) {
         .topbar,
         .hero,
-        .steps {
+        .steps,
+        .logic-grid,
+        .project-grid {
           grid-template-columns: 1fr;
         }
 
@@ -411,6 +451,64 @@
         </div>
       </section>
 
+      <section class="section">
+        <h2 data-i18n="logicTitle">关注池选股逻辑</h2>
+        <p class="section-lead" data-i18n="logicLead">
+          关注池不是预测器，也不是无条件买入清单。它是一个防守优先的短线过滤器：先限定能力圈，再检查流动性、资金敏感度和形态质量，最后用分层状态告诉用户哪些值得重点跟踪，哪些应该降频或剔除。
+        </p>
+        <div class="logic-grid">
+          <div class="rule">
+            <strong data-i18n="rule1Title">1. 明确能力圈</strong>
+            <p data-i18n="rule1Body">候选来源来自显式配置的主板 A 股候选宇宙，不做全市场随机扫描；ST、风险警示和私有持仓标的不进入公开新增逻辑。</p>
+          </div>
+          <div class="rule">
+            <strong data-i18n="rule2Title">2. 先看流动性</strong>
+            <p data-i18n="rule2Body">新增候选需要最新成交额不低于 20 亿元、5 日均成交额不低于 15 亿元，避免低流动性标的稀释注意力。</p>
+          </div>
+          <div class="rule">
+            <strong data-i18n="rule3Title">3. 再看资金敏感度</strong>
+            <p data-i18n="rule3Body">振幅不低于 3%，或绝对涨跌幅不低于 2%，同时不能出现明显弱势收跌，保证关注池跟踪的是有资金反应的标的。</p>
+          </div>
+          <div class="rule">
+            <strong data-i18n="rule4Title">4. 剔除坏形态</strong>
+            <p data-i18n="rule4Body">放量长上影、收盘位置过低、跌破失效位、连续缩量窄幅等情况会被降频或标记为剔除候选。</p>
+          </div>
+          <div class="rule">
+            <strong data-i18n="rule5Title">5. 用评分分层</strong>
+            <p data-i18n="rule5Body">评分综合成交额、相对 5 日放量、振幅、涨幅、近 10 日高点和收盘位置；65 分以上才可新增，80 分以上进入重点关注。</p>
+          </div>
+          <div class="rule">
+            <strong data-i18n="rule6Title">6. 控制注意力上限</strong>
+            <p data-i18n="rule6Body">单次最多新增 5 只，活跃关注池最多 18 只；连续失效的非持仓标的会从公开关注池移除。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 data-i18n="projectTitle">项目详细介绍</h2>
+        <p class="section-lead" data-i18n="projectLead">
+          这个项目把短线交易拆成可执行的流水线：行情刷新、数据新鲜度检查、关注池评分、公开脱敏导出和网页发布。它追求的不是神秘预测，而是让每一次关注、剔除和复盘都有数据来源、有规则、有记录。
+        </p>
+        <div class="project-grid">
+          <div class="project-item">
+            <strong data-i18n="project1Title">本地优先的交易台账</strong>
+            <p data-i18n="project1Body">真实 SQLite 数据库保存在本地，记录关注池、关键价位、短线评分、行情快照和复盘日志；个人持仓、成本和仓位不会公开。</p>
+          </div>
+          <div class="project-item">
+            <strong data-i18n="project2Title">公开可查验的关注池</strong>
+            <p data-i18n="project2Body">GitHub Pages 展示脱敏后的关注池 JSON 和 Markdown，普通用户无需 Token 或配置即可查看。</p>
+          </div>
+          <div class="project-item">
+            <strong data-i18n="project3Title">数据新鲜度门禁</strong>
+            <p data-i18n="project3Body">任何分析前都要通过刷新脚本，只有输出 Status: OK 才进入后续判断，避免用过期行情做短线结论。</p>
+          </div>
+          <div class="project-item">
+            <strong data-i18n="project4Title">自动化发布链路</strong>
+            <p data-i18n="project4Body">工作日北京时间 18:00，GitHub Actions 构建公开库、刷新 RSSCAST 行情、导出数据并部署首页。</p>
+          </div>
+        </div>
+      </section>
+
       <section class="table-shell">
         <div class="table-head">
           <div>
@@ -468,6 +566,32 @@
           step2Body: "维护者可使用 SQLite 保存真实台账，并在分析前运行刷新脚本确认数据新鲜度。",
           step3Title: "3. 只公开脱敏结果",
           step3Body: "公开导出不包含持仓数量、成本价、仓位比例和私人复盘，只展示可查验的关注池状态。",
+          logicTitle: "关注池选股逻辑",
+          logicLead:
+            "关注池不是预测器，也不是无条件买入清单。它是一个防守优先的短线过滤器：先限定能力圈，再检查流动性、资金敏感度和形态质量，最后用分层状态告诉用户哪些值得重点跟踪，哪些应该降频或剔除。",
+          rule1Title: "1. 明确能力圈",
+          rule1Body: "候选来源来自显式配置的主板 A 股候选宇宙，不做全市场随机扫描；ST、风险警示和私有持仓标的不进入公开新增逻辑。",
+          rule2Title: "2. 先看流动性",
+          rule2Body: "新增候选需要最新成交额不低于 20 亿元、5 日均成交额不低于 15 亿元，避免低流动性标的稀释注意力。",
+          rule3Title: "3. 再看资金敏感度",
+          rule3Body: "振幅不低于 3%，或绝对涨跌幅不低于 2%，同时不能出现明显弱势收跌，保证关注池跟踪的是有资金反应的标的。",
+          rule4Title: "4. 剔除坏形态",
+          rule4Body: "放量长上影、收盘位置过低、跌破失效位、连续缩量窄幅等情况会被降频或标记为剔除候选。",
+          rule5Title: "5. 用评分分层",
+          rule5Body: "评分综合成交额、相对 5 日放量、振幅、涨幅、近 10 日高点和收盘位置；65 分以上才可新增，80 分以上进入重点关注。",
+          rule6Title: "6. 控制注意力上限",
+          rule6Body: "单次最多新增 5 只，活跃关注池最多 18 只；连续失效的非持仓标的会从公开关注池移除。",
+          projectTitle: "项目详细介绍",
+          projectLead:
+            "这个项目把短线交易拆成可执行的流水线：行情刷新、数据新鲜度检查、关注池评分、公开脱敏导出和网页发布。它追求的不是神秘预测，而是让每一次关注、剔除和复盘都有数据来源、有规则、有记录。",
+          project1Title: "本地优先的交易台账",
+          project1Body: "真实 SQLite 数据库保存在本地，记录关注池、关键价位、短线评分、行情快照和复盘日志；个人持仓、成本和仓位不会公开。",
+          project2Title: "公开可查验的关注池",
+          project2Body: "GitHub Pages 展示脱敏后的关注池 JSON 和 Markdown，普通用户无需 Token 或配置即可查看。",
+          project3Title: "数据新鲜度门禁",
+          project3Body: "任何分析前都要通过刷新脚本，只有输出 Status: OK 才进入后续判断，避免用过期行情做短线结论。",
+          project4Title: "自动化发布链路",
+          project4Body: "工作日北京时间 18:00，GitHub Actions 构建公开库、刷新 RSSCAST 行情、导出数据并部署首页。",
           tableTitle: "公开关注池",
           thStatus: "状态",
           thCode: "代码",
@@ -501,6 +625,32 @@
           step2Body: "Maintainers can keep a private SQLite ledger and run the refresh gate before analysis.",
           step3Title: "3. Publish only anonymized output",
           step3Body: "Public exports exclude position size, cost basis, allocation, and private reviews.",
+          logicTitle: "Watchlist Selection Logic",
+          logicLead:
+            "The watchlist is not a prediction engine or a blind buy list. It is a defensive shortline filter: define the competence circle, test liquidity, capital sensitivity, and price structure, then publish a status layer that shows what deserves attention and what should be downgraded or removed.",
+          rule1Title: "1. Define the universe",
+          rule1Body: "Candidates come from an explicit main-board A-share universe, not a random full-market scan. ST, risk-warning, and private holding symbols are excluded from public additions.",
+          rule2Title: "2. Liquidity first",
+          rule2Body: "New candidates need at least RMB 2B latest turnover and RMB 1.5B five-day average turnover, so thin names do not dilute attention.",
+          rule3Title: "3. Capital sensitivity",
+          rule3Body: "A candidate needs at least 3% intraday amplitude or 2% absolute price change, and it cannot show obvious weak downside behavior.",
+          rule4Title: "4. Remove bad structure",
+          rule4Body: "Heavy upper shadows, weak closing position, broken invalidation levels, and repeated low-volume narrow ranges are downgraded or marked as removal candidates.",
+          rule5Title: "5. Score and tier",
+          rule5Body: "The score combines turnover, relative volume, amplitude, gain, proximity to a 10-day high, and closing position. Scores above 65 can be added; 80+ becomes High Focus.",
+          rule6Title: "6. Cap attention",
+          rule6Body: "Each run adds at most five names, active watchlist size is capped at 18, and repeatedly invalid non-holding names are removed from the public watchlist.",
+          projectTitle: "Project Overview",
+          projectLead:
+            "The project turns shortline trading into an auditable pipeline: market refresh, freshness gate, watchlist scoring, anonymized export, and web publishing. It does not chase mysterious forecasts; it makes every inclusion, downgrade, and review traceable.",
+          project1Title: "Local-first ledger",
+          project1Body: "The real SQLite database stays local and tracks watchlists, key levels, shortline scores, market snapshots, and reviews. Personal holdings, cost basis, and allocation are not public.",
+          project2Title: "Public verifiable watchlist",
+          project2Body: "GitHub Pages publishes anonymized JSON and Markdown outputs. Visitors can inspect the watchlist without a token or local setup.",
+          project3Title: "Freshness gate",
+          project3Body: "Analysis must pass the refresh script first. Only Status: OK should be treated as a valid state for shortline decisions.",
+          project4Title: "Automated publishing",
+          project4Body: "At 18:00 China time on weekdays, GitHub Actions builds the public database, refreshes RSSCAST quotes, exports data, and deploys the homepage.",
           tableTitle: "Public watchlist",
           thStatus: "Status",
           thCode: "Code",
