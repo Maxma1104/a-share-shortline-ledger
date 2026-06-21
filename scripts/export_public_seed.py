@@ -40,7 +40,8 @@ def fetch_rows(db_path: Path) -> dict[str, list[sqlite3.Row]]:
                 FROM watchlist w
                 JOIN stocks st ON st.id = w.stock_id
                 JOIN markets m ON m.id = st.market_id
-                WHERE st.is_holding = 0
+                WHERE st.is_watchlisted = 1
+                  AND st.is_holding = 0
                 ORDER BY m.name
                 """
             )
@@ -53,6 +54,7 @@ def fetch_rows(db_path: Path) -> dict[str, list[sqlite3.Row]]:
                 JOIN stocks st ON st.id = w.stock_id
                 LEFT JOIN sectors se ON se.id = st.sector_id
                 WHERE se.id IS NOT NULL
+                  AND st.is_watchlisted = 1
                   AND st.is_holding = 0
                 ORDER BY se.name
                 """
@@ -66,7 +68,8 @@ def fetch_rows(db_path: Path) -> dict[str, list[sqlite3.Row]]:
                 JOIN stocks st ON st.id = w.stock_id
                 JOIN markets m ON m.id = st.market_id
                 LEFT JOIN sectors se ON se.id = st.sector_id
-                WHERE st.is_holding = 0
+                WHERE st.is_watchlisted = 1
+                  AND st.is_holding = 0
                 ORDER BY st.code
                 """
             )
@@ -86,7 +89,8 @@ def fetch_rows(db_path: Path) -> dict[str, list[sqlite3.Row]]:
                 FROM watchlist w
                 JOIN stocks st ON st.id = w.stock_id
                 JOIN markets m ON m.id = st.market_id
-                WHERE st.is_holding = 0
+                WHERE st.is_watchlisted = 1
+                  AND st.is_holding = 0
                 ORDER BY st.code
                 """
             )
@@ -114,7 +118,8 @@ def fetch_rows(db_path: Path) -> dict[str, list[sqlite3.Row]]:
                 JOIN stocks st ON st.id = ps.stock_id
                 JOIN markets m ON m.id = st.market_id
                 JOIN watchlist w ON w.stock_id = st.id
-                WHERE st.is_holding = 0
+                WHERE st.is_watchlisted = 1
+                  AND st.is_holding = 0
                 ORDER BY st.code
                 """,
                 (SOURCE,),

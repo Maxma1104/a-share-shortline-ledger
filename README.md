@@ -13,13 +13,14 @@
 - 在线首页：<https://maxma1104.github.io/a-share-shortline-ledger/>
 - 关注池 Markdown：[docs/watchlist.md](docs/watchlist.md)
 - 关注池 JSON：[docs/data/watchlist_latest.json](docs/data/watchlist_latest.json)
+- 自动化规则：[docs/watchlist_rules.md](docs/watchlist_rules.md)
 
-公开关注池每天北京时间 **18:00** 自动刷新。普通用户不需要配置 Token，不需要运行脚本，直接打开入口即可查看。
+公开关注池每个工作日北京时间 **18:00** 自动刷新。普通用户不需要配置 Token，不需要运行脚本，直接打开入口即可查看。
 
 ### 项目做什么
 
-1. **关注池每日更新**
-   每天中国时间 18:00 刷新公开关注池，输出 `重点关注`、`观察`、`低频观察`、`剔除候选` 等状态，方便快速检查市场短线候选。
+1. **关注池工作日更新**
+   每个工作日中国时间 18:00 刷新公开关注池，输出 `重点关注`、`观察`、`低频观察`、`剔除候选` 等状态，并按规则自动发现新候选、剔除旧弱票。
 
 2. **本地交易台账**
    使用 SQLite 记录关注池、持仓、关键价位、短线评分、行情快照和复盘日志。真实数据库默认只保存在本地。
@@ -51,6 +52,7 @@ python3 scripts/refresh_before_analysis.py --db stock_tracking.public.db --skip-
 ```bash
 export RSSCAST_MCP_TOKEN="你的 RssCast MCP Token"
 python3 scripts/refresh_before_analysis.py --db stock_tracking.db
+python3 scripts/discover_watchlist_candidates.py --db stock_tracking.db
 python3 scripts/export_public_seed.py --db stock_tracking.db --output db/public_seed.sql
 python3 scripts/export_public_watchlist.py --db stock_tracking.db
 ```
@@ -86,13 +88,14 @@ The core workflow is simple: refresh data first, inspect the watchlist second, a
 - Live homepage: <https://maxma1104.github.io/a-share-shortline-ledger/>
 - Watchlist Markdown: [docs/watchlist.md](docs/watchlist.md)
 - Watchlist JSON: [docs/data/watchlist_latest.json](docs/data/watchlist_latest.json)
+- Automation rules: [docs/watchlist_rules.md](docs/watchlist_rules.md)
 
-The public watchlist refreshes every day at **18:00 China Standard Time**. Visitors do not need tokens, setup, or local scripts.
+The public watchlist refreshes every weekday at **18:00 China Standard Time**. Visitors do not need tokens, setup, or local scripts.
 
 ### What It Does
 
-1. **Daily public watchlist**
-   Publishes an anonymized A-share watchlist with statuses such as `High Focus`, `Watch`, `Low Frequency`, and `Removal Candidate`.
+1. **Weekday public watchlist**
+   Publishes an anonymized A-share watchlist with statuses such as `High Focus`, `Watch`, `Low Frequency`, and `Removal Candidate`, with rule-based candidate discovery and removal.
 
 2. **Local trading ledger**
    Uses SQLite to track watchlists, positions, key levels, shortline scores, market snapshots, and review logs. Private data stays local by default.
@@ -124,6 +127,7 @@ Maintainer live refresh:
 ```bash
 export RSSCAST_MCP_TOKEN="your RssCast MCP token"
 python3 scripts/refresh_before_analysis.py --db stock_tracking.db
+python3 scripts/discover_watchlist_candidates.py --db stock_tracking.db
 python3 scripts/export_public_seed.py --db stock_tracking.db --output db/public_seed.sql
 python3 scripts/export_public_watchlist.py --db stock_tracking.db
 ```

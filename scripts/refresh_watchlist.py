@@ -29,6 +29,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--db", default="stock_tracking.db", help="Path to SQLite database.")
     parser.add_argument("--lookback-days", type=int, default=14, help="Calendar days for K-line lookup.")
     parser.add_argument("--dry-run", action="store_true", help="Print decisions without updating watchlist.")
+    parser.add_argument(
+        "--prune-removal-days",
+        type=int,
+        default=0,
+        help=(
+            "Hard-remove non-holding stocks that remain removal candidates for this many "
+            "calendar days. Default 0 keeps the current status-only behavior."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -304,6 +313,7 @@ def evaluate_stock(stock: sqlite3.Row, bars: list[dict[str, Any]], latest_date: 
         "code": stock["code"],
         "name": stock["name"],
         "old_status": stock["status"],
+        "updated_on": stock["updated_on"],
         "decision": decision,
         "score": score,
         "price": latest_price,
@@ -316,12 +326,38 @@ def evaluate_stock(stock: sqlite3.Row, bars: list[dict[str, Any]], latest_date: 
     }
 
 
-def apply_decisions(db_path: Path, decisions: list[dict[str, Any]], status_date: date) -> None:
+def apply_decisions(
+    db_path: Path,
+    decisions: list[dict[str, Any]],
+    status_date: date,
+    prune_removal_days: int,
+) -> None:
     today = status_date.isoformat()
     with sqlite3.connect(db_path) as conn:
         conn.execute("PRAGMA foreign_keys = ON")
         for item in decisions:
             status = f"{today}{item['decision']}"
+            old_status = item.get("old_status") or ""
+            old_date = parse_bar_date(item.get("updated_on"))
+            should_prune = (
+                prune_removal_days > 0
+                and item["decision"] == REMOVE_STATUS
+                and REMOVE_STATUS in old_status
+                and old_date != date.min
+                and (status_date - old_date).days >= prune_removal_days
+            )
+
+            if should_prune:
+                conn.execute(
+                    """
+                    UPDATE stocks
+                    SET is_watchlisted = 0, updated_at = datetime('now')
+                    WHERE code = ? AND is_holding = 0
+                    """,
+                    (item["code"],),
+                )
+                item["pruned"] = True
+
             conn.execute(
                 """
                 UPDATE watchlist
@@ -339,7 +375,12 @@ def apply_decisions(db_path: Path, decisions: list[dict[str, Any]], status_date:
             """,
             (
                 today,
-                f"Refreshed watchlist activity: {remove_count} removal candidate(s), {low_freq_count} low-frequency candidate(s).",
+                (
+                    "Refreshed watchlist activity: "
+                    f"{remove_count} removal candidate(s), "
+                    f"{low_freq_count} low-frequency candidate(s), "
+                    f"{sum(1 for item in decisions if item.get('pruned'))} pruned."
+                ),
                 SOURCE,
             ),
         )
@@ -356,7 +397,8 @@ def print_report(decisions: list[dict[str, Any]], dry_run: bool) -> int:
             f"{item['code']} {item['name']}: {item['decision']} "
             f"score={item['score']} price={item['price']} "
             f"chg={item['change_pct']:.2f}% amount={item['amount_yi']:.1f}亿 "
-            f"avg5={item['avg_amount_5']:.1f}亿 @ {item['snapshot_at']} | {item['reason']}"
+            f"avg5={item['avg_amount_5']:.1f}亿 @ {item['snapshot_at']} | "
+            f"{item['reason']}{'；已从关注池硬剔除' if item.get('pruned') else ''}"
         )
 
     blocked = [item for item in decisions if item["snapshot_at"] is None]
@@ -403,7 +445,7 @@ def main() -> int:
 
     decisions = [evaluate_stock(row, bars_by_code.get(row["code"], []), latest_date) for row in watchlist]
     if not args.dry_run:
-        apply_decisions(db_path, decisions, latest_date)
+        apply_decisions(db_path, decisions, latest_date, args.prune_removal_days)
     return print_report(decisions, args.dry_run)
 
 

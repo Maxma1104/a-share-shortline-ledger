@@ -2,7 +2,7 @@
 
 - Generated at: 2026-06-21T17:35:57+08:00 (Asia/Shanghai)
 - Latest market timestamp: 2026-06-18 15:00:02 +0800
-- Scheduled refresh: every day at 18:00 China Standard Time
+- Scheduled refresh: every Monday-Friday at 18:00 China Standard Time
 - Data source: RSSCAST, https://app-cn.rsscast.io
 - Privacy: no holdings, cost basis, position size, or private review logs are exported.
 
