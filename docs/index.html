@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A-Share Shortline Ledger</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f8fa;
+        --panel: #ffffff;
+        --ink: #18202a;
+        --muted: #5e6a78;
+        --line: #d9dee6;
+        --accent: #0f766e;
+        --warn: #b45309;
+        --danger: #b91c1c;
+        --focus: #0b5cad;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        letter-spacing: 0;
+      }
+
+      header {
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .wrap {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 0;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .mark {
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--line);
+        display: grid;
+        place-items: center;
+        color: var(--accent);
+        font-weight: 800;
+        background: #eef8f6;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 22px;
+        line-height: 1.2;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 4px;
+      }
+
+      .language {
+        display: inline-flex;
+        border: 1px solid var(--line);
+        background: #f2f4f7;
+      }
+
+      .language button {
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .language button.active {
+        background: var(--panel);
+        color: var(--ink);
+        font-weight: 700;
+      }
+
+      main {
+        padding: 28px 0 44px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+        gap: 24px;
+        align-items: start;
+      }
+
+      .intro,
+      .summary,
+      .section,
+      .table-shell {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .intro {
+        padding: 22px;
+      }
+
+      .intro h2 {
+        font-size: 30px;
+        line-height: 1.15;
+        margin-bottom: 14px;
+      }
+
+      .intro p {
+        color: var(--muted);
+        line-height: 1.7;
+        max-width: 760px;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .actions a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 9px 13px;
+        border: 1px solid var(--line);
+        color: var(--ink);
+        text-decoration: none;
+        background: #fbfcfd;
+        border-radius: 6px;
+        font-weight: 700;
+      }
+
+      .actions a.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      .summary {
+        padding: 18px;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .metric {
+        border: 1px solid var(--line);
+        padding: 12px;
+        border-radius: 6px;
+        background: #fbfcfd;
+      }
+
+      .metric strong {
+        display: block;
+        font-size: 22px;
+      }
+
+      .metric span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .section {
+        margin-top: 24px;
+        padding: 20px;
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .step {
+        border-left: 4px solid var(--accent);
+        background: #fbfcfd;
+        padding: 12px 14px;
+        min-height: 108px;
+      }
+
+      .step strong {
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .step p {
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 14px;
+      }
+
+      .table-shell {
+        margin-top: 24px;
+        overflow: hidden;
+      }
+
+      .table-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .table-meta {
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 4px;
+      }
+
+      .table-scroll {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 920px;
+      }
+
+      th,
+      td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+        font-size: 14px;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        background: #fbfcfd;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 26px;
+        border-radius: 999px;
+        padding: 4px 9px;
+        font-weight: 700;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .status-focus {
+        color: var(--focus);
+        background: #e8f1fc;
+      }
+
+      .status-watch {
+        color: var(--accent);
+        background: #e8f6f3;
+      }
+
+      .status-low {
+        color: var(--warn);
+        background: #fff4df;
+      }
+
+      .status-remove {
+        color: var(--danger);
+        background: #fdecec;
+      }
+
+      .note {
+        max-width: 360px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      code {
+        background: #eef1f5;
+        padding: 2px 5px;
+        border-radius: 4px;
+      }
+
+      footer {
+        color: var(--muted);
+        border-top: 1px solid var(--line);
+        padding: 18px 0;
+        font-size: 13px;
+      }
+
+      @media (max-width: 840px) {
+        .topbar,
+        .hero,
+        .steps {
+          grid-template-columns: 1fr;
+        }
+
+        .topbar {
+          display: grid;
+        }
+
+        .intro h2 {
+          font-size: 25px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap topbar">
+        <div class="brand">
+          <div class="mark">A</div>
+          <div>
+            <h1>A-Share Shortline Ledger</h1>
+            <p class="subtitle" data-i18n="tagline">本地交易台账 + 公开关注池</p>
+          </div>
+        </div>
+        <div class="language" aria-label="Language">
+          <button type="button" data-lang="zh" class="active">中文</button>
+          <button type="button" data-lang="en">English</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="hero">
+        <div class="intro">
+          <h2 data-i18n="heroTitle">每天 18:00 刷新，先看关注池，再谈策略。</h2>
+          <p data-i18n="heroBody">
+            这是一个面向 A 股短线交易的本地台账和公开关注池项目。公开页面只展示脱敏后的关注池、状态、关键价位和行情快照，不公开个人持仓、成本价和私人复盘。
+          </p>
+          <div class="actions">
+            <a class="primary" href="data/watchlist_latest.json" data-i18n="jsonLink">查看 JSON</a>
+            <a href="watchlist.md" data-i18n="mdLink">查看 Markdown</a>
+            <a href="https://github.com/Maxma1104/a-share-shortline-ledger" data-i18n="repoLink">GitHub 仓库</a>
+          </div>
+        </div>
+
+        <aside class="summary">
+          <h2 data-i18n="summaryTitle">刷新状态</h2>
+          <p class="subtitle" id="refresh-meta">Loading...</p>
+          <div class="summary-grid">
+            <div class="metric">
+              <strong id="total-count">-</strong>
+              <span data-i18n="total">全部标的</span>
+            </div>
+            <div class="metric">
+              <strong id="focus-count">-</strong>
+              <span data-i18n="focus">重点关注</span>
+            </div>
+            <div class="metric">
+              <strong id="watch-count">-</strong>
+              <span data-i18n="watch">观察</span>
+            </div>
+            <div class="metric">
+              <strong id="remove-count">-</strong>
+              <span data-i18n="remove">剔除候选</span>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section">
+        <h2 data-i18n="howTitle">这个项目怎么用</h2>
+        <div class="steps">
+          <div class="step">
+            <strong data-i18n="step1Title">1. 直接查公开关注池</strong>
+            <p data-i18n="step1Body">普通用户无需配置 Token，打开本页即可查看每日 18:00 更新的公开关注池。</p>
+          </div>
+          <div class="step">
+            <strong data-i18n="step2Title">2. 本地跑完整台账</strong>
+            <p data-i18n="step2Body">维护者可使用 SQLite 保存真实台账，并在分析前运行刷新脚本确认数据新鲜度。</p>
+          </div>
+          <div class="step">
+            <strong data-i18n="step3Title">3. 只公开脱敏结果</strong>
+            <p data-i18n="step3Body">公开导出不包含持仓数量、成本价、仓位比例和私人复盘，只展示可查验的关注池状态。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="table-shell">
+        <div class="table-head">
+          <div>
+            <h2 data-i18n="tableTitle">公开关注池</h2>
+            <p class="table-meta" id="table-meta">Loading...</p>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th data-i18n="thStatus">状态</th>
+                <th data-i18n="thCode">代码</th>
+                <th data-i18n="thName">名称</th>
+                <th data-i18n="thPrice">价格</th>
+                <th data-i18n="thChange">涨跌幅</th>
+                <th data-i18n="thAmount">成交额(亿)</th>
+                <th data-i18n="thLevels">关键位</th>
+                <th data-i18n="thInvalid">失效条件</th>
+                <th data-i18n="thNote">公开说明</th>
+              </tr>
+            </thead>
+            <tbody id="watchlist-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap" data-i18n="footer">
+        数据来源：RSSCAST。公开关注池不是买入建议，交易风险自担。
+      </div>
+    </footer>
+
+    <script>
+      const copy = {
+        zh: {
+          tagline: "本地交易台账 + 公开关注池",
+          heroTitle: "每天 18:00 刷新，先看关注池，再谈策略。",
+          heroBody:
+            "这是一个面向 A 股短线交易的本地台账和公开关注池项目。公开页面只展示脱敏后的关注池、状态、关键价位和行情快照，不公开个人持仓、成本价和私人复盘。",
+          jsonLink: "查看 JSON",
+          mdLink: "查看 Markdown",
+          repoLink: "GitHub 仓库",
+          summaryTitle: "刷新状态",
+          total: "全部标的",
+          focus: "重点关注",
+          watch: "观察",
+          remove: "剔除候选",
+          howTitle: "这个项目怎么用",
+          step1Title: "1. 直接查公开关注池",
+          step1Body: "普通用户无需配置 Token，打开本页即可查看每日 18:00 更新的公开关注池。",
+          step2Title: "2. 本地跑完整台账",
+          step2Body: "维护者可使用 SQLite 保存真实台账，并在分析前运行刷新脚本确认数据新鲜度。",
+          step3Title: "3. 只公开脱敏结果",
+          step3Body: "公开导出不包含持仓数量、成本价、仓位比例和私人复盘，只展示可查验的关注池状态。",
+          tableTitle: "公开关注池",
+          thStatus: "状态",
+          thCode: "代码",
+          thName: "名称",
+          thPrice: "价格",
+          thChange: "涨跌幅",
+          thAmount: "成交额(亿)",
+          thLevels: "关键位",
+          thInvalid: "失效条件",
+          thNote: "公开说明",
+          footer: "数据来源：RSSCAST。公开关注池不是买入建议，交易风险自担。",
+          metaPrefix: "每日北京时间 18:00 刷新。最新行情时间：",
+        },
+        en: {
+          tagline: "Local trading ledger + public watchlist",
+          heroTitle: "Refresh at 18:00 China time. Watchlist first, tactics second.",
+          heroBody:
+            "A local-first A-share shortline trading ledger with an anonymized public watchlist. The public page shows status, key levels, invalidation rules, and market snapshots. It does not expose personal positions, cost basis, or private reviews.",
+          jsonLink: "View JSON",
+          mdLink: "View Markdown",
+          repoLink: "GitHub repo",
+          summaryTitle: "Refresh status",
+          total: "Total symbols",
+          focus: "High focus",
+          watch: "Watch",
+          remove: "Removal candidates",
+          howTitle: "How to use it",
+          step1Title: "1. Read the public watchlist",
+          step1Body: "Visitors need no token or setup. Open this page to inspect the daily 18:00 public watchlist.",
+          step2Title: "2. Run the full ledger locally",
+          step2Body: "Maintainers can keep a private SQLite ledger and run the refresh gate before analysis.",
+          step3Title: "3. Publish only anonymized output",
+          step3Body: "Public exports exclude position size, cost basis, allocation, and private reviews.",
+          tableTitle: "Public watchlist",
+          thStatus: "Status",
+          thCode: "Code",
+          thName: "Name",
+          thPrice: "Price",
+          thChange: "Change",
+          thAmount: "Amount (100M CNY)",
+          thLevels: "Key levels",
+          thInvalid: "Invalidation",
+          thNote: "Public note",
+          footer: "Data source: RSSCAST. The public watchlist is not investment advice.",
+          metaPrefix: "Daily refresh at 18:00 China time. Latest market timestamp: ",
+        },
+      };
+
+      let lang = "zh";
+      let payload = null;
+
+      function t(key) {
+        return copy[lang][key] || key;
+      }
+
+      function statusClass(status) {
+        if (status.includes("重点") || status === "High Focus") return "status status-focus";
+        if (status.includes("剔除") || status === "Removal Candidate") return "status status-remove";
+        if (status.includes("低频") || status === "Low Frequency") return "status status-low";
+        return "status status-watch";
+      }
+
+      function renderText() {
+        document.querySelectorAll("[data-i18n]").forEach((node) => {
+          node.textContent = t(node.dataset.i18n);
+        });
+        document.querySelectorAll("[data-lang]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.lang === lang);
+        });
+      }
+
+      function fmt(value, suffix = "") {
+        if (value === null || value === undefined || value === "") return "-";
+        if (typeof value === "number") return `${value}${suffix}`;
+        return `${value}${suffix}`;
+      }
+
+      function renderData() {
+        if (!payload) return;
+        document.getElementById("total-count").textContent = payload.summary.total ?? "-";
+        document.getElementById("focus-count").textContent = payload.summary["重点关注"] ?? "-";
+        document.getElementById("watch-count").textContent = payload.summary["观察"] ?? "-";
+        document.getElementById("remove-count").textContent = payload.summary["剔除候选"] ?? "-";
+        const meta = `${t("metaPrefix")}${payload.latest_market_timestamp || "-"}`;
+        document.getElementById("refresh-meta").textContent = meta;
+        document.getElementById("table-meta").textContent = meta;
+
+        const body = document.getElementById("watchlist-body");
+        body.innerHTML = "";
+        payload.watchlist.forEach((row) => {
+          const status = lang === "zh" ? row.status : row.status_en;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.rank}</td>
+            <td><span class="${statusClass(status)}">${status}</span></td>
+            <td><code>${row.code}</code></td>
+            <td>${row.name}</td>
+            <td>${fmt(row.price)}</td>
+            <td>${row.change_pct === null ? "-" : `${row.change_pct.toFixed(2)}%`}</td>
+            <td>${fmt(row.volume_amount_yi)}</td>
+            <td>${row.key_levels || "-"}</td>
+            <td class="note">${row.invalid_condition || "-"}</td>
+            <td class="note">${row.focus_reason || "-"}</td>
+          `;
+          body.appendChild(tr);
+        });
+      }
+
+      document.querySelectorAll("[data-lang]").forEach((button) => {
+        button.addEventListener("click", () => {
+          lang = button.dataset.lang;
+          document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+          renderText();
+          renderData();
+        });
+      });
+
+      renderText();
+      fetch("data/watchlist_latest.json")
+        .then((response) => response.json())
+        .then((data) => {
+          payload = data;
+          renderData();
+        })
+        .catch(() => {
+          document.getElementById("refresh-meta").textContent = "Unable to load watchlist_latest.json";
+          document.getElementById("table-meta").textContent = "Unable to load watchlist_latest.json";
+        });
+    </script>
+  </body>
+</html>

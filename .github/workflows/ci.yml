@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  package-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install sqlite3
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sqlite3
+      - name: Compile Python scripts
+        run: python3 -m py_compile scripts/*.py
+      - name: Build public database
+        run: |
+          sqlite3 stock_tracking.public.db < db/schema.sql
+          sqlite3 stock_tracking.public.db < db/public_seed.sql
+      - name: Run offline freshness gate
+        run: python3 scripts/refresh_before_analysis.py --db stock_tracking.public.db --skip-sync
+      - name: Export public watchlist
+        run: python3 scripts/export_public_watchlist.py --db stock_tracking.public.db
