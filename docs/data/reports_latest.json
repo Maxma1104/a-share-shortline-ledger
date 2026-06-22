@@ -1,0 +1,86 @@
+{
+  "schema_version": "0.1",
+  "generated_at": "",
+  "data_status": "interface-ready",
+  "note": "This file is a public UI contract for automated pre-market, intraday, and post-close reports. Replace placeholder content with sanitized exports only.",
+  "reports": [
+    {
+      "id": "pre-open",
+      "period": "盘前",
+      "time": "09:10",
+      "title": "盘前计划报告",
+      "status": "待接入",
+      "fund_flow_overview": "读取隔夜外围、商品、汇率和关注池失效位，形成当日防守清单。",
+      "summary": "盘前报告接口已预留；接入后这里展示今日主线、风险点、开盘观察顺序。",
+      "sections": [
+        {
+          "title": "需要确认",
+          "bullets": [
+            "外围指数与纳斯达克方向",
+            "黄金、原油和美元指数是否共振",
+            "关注池是否有低开跌破失效位"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mid-open",
+      "period": "盘中",
+      "time": "10:30",
+      "title": "开盘一小时盘面汇总",
+      "status": "自动化任务",
+      "fund_flow_overview": "跟踪指数、成交额、板块强弱、关注池承接和放量方向。",
+      "summary": "数据库已有 10:30 盘面汇总任务；后续可从 update_logs 导出格式化报告。",
+      "sections": [
+        {
+          "title": "资金动向",
+          "bullets": [
+            "指数方向",
+            "成交额变化",
+            "主线板块强弱",
+            "关注池触发情况"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mid-noon",
+      "period": "盘中",
+      "time": "11:35",
+      "title": "午盘复盘报告",
+      "status": "自动化任务",
+      "fund_flow_overview": "上午走势、持仓去留、下午风险点和失效位复核。",
+      "summary": "午盘报告用于减少下午冲动交易，只保留高确定性观察对象。",
+      "sections": [
+        {
+          "title": "午盘检查",
+          "bullets": [
+            "强势方向是否延续",
+            "冲高回落是否放量",
+            "剔除候选是否继续弱化"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "post-close",
+      "period": "盘后",
+      "time": "15:10",
+      "title": "收盘复盘报告",
+      "status": "自动化任务",
+      "fund_flow_overview": "收盘后复盘关注池、剔除候选、次日策略和风险边界。",
+      "summary": "盘后报告对接关注池刷新结论，作为次日盘前检查的输入。",
+      "sections": [
+        {
+          "title": "复盘闭环",
+          "bullets": [
+            "关注池状态变化",
+            "新增候选质量",
+            "次日只看哪些触发条件",
+            "哪些标的降频或剔除"
+          ]
+        }
+      ]
+    }
+  ]
+}

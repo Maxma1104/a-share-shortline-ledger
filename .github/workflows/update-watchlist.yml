@@ -1,0 +1,55 @@
+name: Update Public Watchlist
+
+on:
+  schedule:
+    # 18:00 China Standard Time, Monday-Friday.
+    - cron: "0 10 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-watchlist:
+    runs-on: ubuntu-latest
+    env:
+      RSSCAST_MCP_TOKEN: ${{ secrets.RSSCAST_MCP_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install sqlite3
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sqlite3
+      - name: Build public database
+        run: |
+          rm -f stock_tracking.public.db
+          sqlite3 stock_tracking.public.db < db/schema.sql
+          sqlite3 stock_tracking.public.db < db/public_seed.sql
+      - name: Refresh market data when token exists
+        run: |
+          if [ -n "$RSSCAST_MCP_TOKEN" ]; then
+            python3 scripts/refresh_before_analysis.py --db stock_tracking.public.db --prune-removal-days 1
+            python3 scripts/discover_watchlist_candidates.py --db stock_tracking.public.db
+          else
+            python3 scripts/refresh_before_analysis.py --db stock_tracking.public.db --skip-sync
+          fi
+      - name: Check market snapshot freshness
+        id: freshness
+        run: |
+          python3 scripts/check_publication_freshness.py --db stock_tracking.public.db --github-output "$GITHUB_OUTPUT"
+      - name: Export public files
+        if: steps.freshness.outputs.fresh == 'true'
+        run: |
+          python3 scripts/export_public_seed.py --db stock_tracking.public.db --output db/public_seed.sql
+          python3 scripts/export_public_watchlist.py --db stock_tracking.public.db
+      - name: Commit updated watchlist
+        if: steps.freshness.outputs.fresh == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add db/public_seed.sql docs/data/watchlist_latest.json docs/watchlist.md
+          git diff --cached --quiet || git commit -m "Update public watchlist"
+          git push
