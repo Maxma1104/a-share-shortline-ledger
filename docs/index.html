@@ -583,6 +583,70 @@
       </div>
     </section>
 
+    <!-- BACKTEST PAGE -->
+    <section class="page" id="backtest-page">
+      <!-- Holdings KPIs -->
+      <div class="section-head" style="margin-top:0">
+        <div>
+          <h3>持仓概览</h3>
+          <div class="sub">当前持仓、盈亏和止损位。最新行情快照时间见下方脚注。</div>
+        </div>
+        <span class="pill gold" id="holdings-count-pill">持仓 —</span>
+      </div>
+      <div class="grid cols-4" id="holdings-kpi"></div>
+
+      <div class="section-head">
+        <div>
+          <h3>持仓明细</h3>
+          <div class="sub">按仓位占比排序。</div>
+        </div>
+      </div>
+      <div id="holdings-table"></div>
+      <div class="source-line" id="holdings-source">读取持仓数据 …</div>
+
+      <!-- Backtest -->
+      <div class="section-head">
+        <div>
+          <h3>策略回测绩效</h3>
+          <div class="sub">基于最新回测运行，每次独立存储不可覆写。数据来源 RSSCAST。</div>
+        </div>
+        <span class="pill cyan" id="backtest-run-pill">回测运行 —</span>
+      </div>
+      <div class="grid cols-4" id="backtest-kpi"></div>
+
+      <!-- Charts -->
+      <div class="grid cols-2" style="margin-top:14px">
+        <div class="panel" style="min-height:260px">
+          <h4 style="font-size:13px;margin-bottom:10px;color:var(--grey-70)">📈 信号收益分布</h4>
+          <canvas id="returnChart"></canvas>
+        </div>
+        <div class="panel" style="min-height:260px">
+          <h4 style="font-size:13px;margin-bottom:10px;color:var(--grey-70)">🎯 分数段对比</h4>
+          <canvas id="segmentChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Signal Table -->
+      <div class="section-head">
+        <div><h3>策略信号明细</h3></div>
+      </div>
+      <div id="backtest-table"></div>
+
+      <!-- Pending Signals -->
+      <div class="section-head">
+        <div><h3>待回测信号</h3><div class="sub">信号已生成但尚未获得回测数据（需等收盘行情快照落库）。</div></div>
+      </div>
+      <div id="pending-table"></div>
+
+      <!-- Optimization Notes -->
+      <div class="section-head">
+        <div><h3>策略优化建议</h3></div>
+      </div>
+      <div id="optimization-notes" class="empty-state">等待加载回测数据 …</div>
+
+      <div class="source-line" id="backtest-source">回测数据来源 RSSCAST · https://app-cn.rsscast.io · 每次运行独立存储</div>
+    </section>
+
     <!-- STRATEGY PAGE -->
     <section class="page" id="strategy-page">
       <div style="margin-bottom:14px">
