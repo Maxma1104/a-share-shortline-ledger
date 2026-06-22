@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>A-Share Shortline Console</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --blue: #0000F2;
@@ -403,6 +404,9 @@
       </button>
       <button data-page="watchlist">
         Watchlist <span class="tag">关注池</span>
+      </button>
+      <button data-page="backtest">
+        Backtest <span class="tag">回测</span>
       </button>
     </nav>
 
@@ -916,6 +920,280 @@ function openReport(id) {
   document.getElementById('report-modal').classList.add('active');
 }
 
+// ── Backtest Renderers ────────────────────────────────────────
+
+function fmtSign(v, isPct) {
+  if (v == null || v === '') return '—';
+  const n = Number(v);
+  if (isNaN(n)) return '—';
+  return (n >= 0 ? '+' : '') + n.toFixed(2) + (isPct ? '%' : '');
+}
+
+function pnlCls(v) {
+  if (v == null) return '';
+  return Number(v) > 0 ? 'style="color:var(--green)"' : Number(v) < 0 ? 'style="color:var(--red)"' : '';
+}
+
+function pnlTxt(v, isPct) {
+  if (v == null || v === '') return '—';
+  const n = Number(v);
+  if (isNaN(n)) return '—';
+  return (n >= 0 ? '+' : '') + n.toFixed(2) + (isPct ? '%' : '');
+}
+
+function renderHoldings() {
+  const bt = backtestPayload;
+  if (!bt) return;
+
+  const h = bt.holdings;
+  const s = h.summary || {};
+
+  // KPI row
+  document.getElementById('holdings-kpi').innerHTML = `
+    <div class="metric card"><strong>${s.count||'—'}</strong><span>持仓数量</span></div>
+    <div class="metric card"><strong>${s.win_count||0}</strong><span>盈利</span></div>
+    <div class="metric card"><strong>${s.loss_count||0}</strong><span>亏损</span></div>
+    <div class="metric card"><strong ${pnlCls(s.total_unrealized_return_pct)}>${fmtSign(s.total_unrealized_return_pct, true)}</strong><span>加权总盈亏</span></div>`;
+  document.getElementById('holdings-count-pill').textContent = '持仓 ' + (s.count||0) + '只 · 仓位 ' + (s.total_position_pct||0) + '%';
+
+  // Holdings table
+  const pos = h.positions || [];
+  if (!pos.length) {
+    document.getElementById('holdings-table').innerHTML = '<div class="empty-state">暂无持仓数据</div>';
+  } else {
+    document.getElementById('holdings-table').innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid var(--grey-20)">
+        <thead><tr style="border-bottom:1px solid var(--grey-20)">
+          <th style="padding:10px;text-align:left;color:var(--grey-50);font-weight:500">代码</th>
+          <th style="padding:10px;text-align:left;color:var(--grey-50);font-weight:500">名称</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50);font-weight:500">持仓</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50);font-weight:500">成本</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50);font-weight:500">现价</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50);font-weight:500">盈亏%</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50);font-weight:500">止损</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50);font-weight:500">仓位%</th>
+          <th style="padding:10px;text-align:left;color:var(--grey-50);font-weight:500">策略</th>
+        </tr></thead>
+        <tbody>${pos.map(p => `
+          <tr style="border-bottom:1px solid var(--grey-20);background:rgba(255,255,255,0.02)">
+            <td style="padding:10px;font-family:var(--mono)">${esc(p.code)}</td>
+            <td style="padding:10px;font-weight:600">${esc(p.name)}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono)">${p.quantity||'—'}股</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono)">${p.cost_price||'—'}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono)">${p.last_price||'—'}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono);font-weight:700" ${pnlCls(p.unrealized_return_pct)}>${pnlTxt(p.unrealized_return_pct, true)}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono);color:var(--red)">${p.stop_loss||'—'}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono)">${p.position_pct||'—'}%</td>
+            <td style="padding:10px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--grey-50)" title="${esc(p.current_strategy||'')}">${esc(p.current_strategy||'—')}</td>
+          </tr>`).join('')}</tbody>
+      </table>`;
+  }
+
+  document.getElementById('holdings-source').textContent =
+    '持仓数据来源 RSSCAST · 快照 ' + (bt.latest_market_timestamp || '—') + ' · 仅供个人复盘参照';
+}
+
+function renderBacktest() {
+  const bt = backtestPayload;
+  if (!bt) return;
+
+  const bk = bt.backtest || {};
+  const ov = bk.overall || {};
+
+  // Run pill
+  document.getElementById('backtest-run-pill').textContent =
+    '运行 #' + (bk.run_id || '—') + ' · ' + (bk.run_date || '—') + ' · ' + (bk.run_status || '—');
+
+  // KPI
+  document.getElementById('backtest-kpi').innerHTML = `
+    <div class="metric card"><strong>${bk.total_results||0}</strong><span>已回测信号</span></div>
+    <div class="metric card"><strong ${pnlCls(ov.win_rate)}>${ov.win_rate||0}%</strong><span>胜率</span></div>
+    <div class="metric card"><strong ${pnlCls(ov.avg)}>${fmtSign(ov.avg, true)}</strong><span>平均收益</span></div>
+    <div class="metric card"><strong ${pnlCls(ov.profit_factor)}>${ov.profit_factor||'—'}</strong><span>盈亏比</span></div>`;
+
+  // Signal table
+  const sigs = bk.signals || [];
+  if (!sigs.length) {
+    document.getElementById('backtest-table').innerHTML = '<div class="empty-state">暂无回测结果，需等收盘行情快照落库后运行回测。</div>';
+  } else {
+    document.getElementById('backtest-table').innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid var(--grey-20)">
+        <thead><tr style="border-bottom:1px solid var(--grey-20)">
+          <th style="padding:10px;text-align:left;color:var(--grey-50)">代码</th>
+          <th style="padding:10px;text-align:left;color:var(--grey-50)">名称</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50)">分数</th>
+          <th style="padding:10px;text-align:center;color:var(--grey-50)">日期</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50)">入场价</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50)">退出价</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50)">收益%</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50)">1日</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50)">5日</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50)">最大浮盈</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50)">最大浮亏</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50)">持仓天</th>
+        </tr></thead>
+        <tbody>${sigs.map(s => `
+          <tr style="border-bottom:1px solid var(--grey-20);background:rgba(255,255,255,0.02)">
+            <td style="padding:10px;font-family:var(--mono)">${esc(s.code)}</td>
+            <td style="padding:10px;font-weight:600">${esc(s.name)}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono);${s.score>=80?'color:var(--red);font-weight:700':''}">${s.score}</td>
+            <td style="padding:10px;text-align:center">${s.signal_date||'—'}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono)">${s.entry_price||'—'}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono)">${s.exit_price||'—'}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono);font-weight:700" ${pnlCls(s.return_pct)}>${pnlTxt(s.return_pct, true)}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono)" ${pnlCls(s.ret_1d)}>${pnlTxt(s.ret_1d, true)}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono)" ${pnlCls(s.ret_5d)}>${pnlTxt(s.ret_5d, true)}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono);color:var(--green)">${fmtSign(s.max_favorable, true)}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono);color:var(--red)">${fmtSign(s.max_adverse, true)}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono)">${s.holding_days||'—'}</td>
+          </tr>`).join('')}</tbody>
+      </table>`;
+  }
+
+  // Pending signals table
+  const pending = bk.pending_signals || [];
+  if (pending.length) {
+    document.getElementById('pending-table').innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid var(--grey-20)">
+        <thead><tr style="border-bottom:1px solid var(--grey-20)">
+          <th style="padding:10px;text-align:left;color:var(--grey-50)">代码</th>
+          <th style="padding:10px;text-align:left;color:var(--grey-50)">名称</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50)">分数</th>
+          <th style="padding:10px;text-align:center;color:var(--grey-50)">日期</th>
+          <th style="padding:10px;text-align:right;color:var(--grey-50)">触发价</th>
+          <th style="padding:10px;text-align:left;color:var(--grey-50)">触发条件</th>
+          <th style="padding:10px;text-align:left;color:var(--grey-50)">失效条件</th>
+        </tr></thead>
+        <tbody>${pending.map(s => `
+          <tr style="border-bottom:1px solid var(--grey-20);background:rgba(255,255,255,0.02)">
+            <td style="padding:10px;font-family:var(--mono)">${esc(s.code)}</td>
+            <td style="padding:10px;font-weight:600">${esc(s.name)}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono);${s.score>=80?'color:var(--red);font-weight:700':''}">${s.score}</td>
+            <td style="padding:10px;text-align:center">${s.signal_date||'—'}</td>
+            <td style="padding:10px;text-align:right;font-family:var(--mono)">${s.trigger_price||'—'}</td>
+            <td style="padding:10px;font-size:11px;color:var(--grey-50);max-width:200px">${esc(s.trigger_condition||'—')}</td>
+            <td style="padding:10px;font-size:11px;color:var(--red);max-width:200px">${esc(s.invalid_condition||'—')}</td>
+          </tr>`).join('')}</tbody>
+      </table>`;
+  } else {
+    document.getElementById('pending-table').innerHTML = '<div class="empty-state">无待回测信号</div>';
+  }
+
+  // Optimization notes
+  const notes = bt.optimization_notes || [];
+  document.getElementById('optimization-notes').innerHTML = notes.length
+    ? '<ul style="padding-left:18px;color:var(--grey-50);font-size:13px;line-height:2">' + notes.map(n => '<li>' + esc(n) + '</li>').join('') + '</ul>'
+    : '暂无优化建议。';
+
+  document.getElementById('backtest-source').textContent =
+    '回测数据来源 RSSCAST · https://app-cn.rsscast.io · 运行 #' + (bk.run_id||'—') + ' · ' + (bk.run_at||'—');
+
+  // Charts
+  renderBacktestCharts(bk);
+}
+
+function renderBacktestCharts(bk) {
+  const sigs = bk.signals || [];
+  const segs = bk.segments || {};
+
+  // Destroy old charts
+  if (returnChartInst) { returnChartInst.destroy(); returnChartInst = null; }
+  if (segmentChartInst) { segmentChartInst.destroy(); segmentChartInst = null; }
+
+  if (!sigs.length) return;
+
+  // Return distribution chart
+  const labels = sigs.map(s => s.code + ' ' + s.name);
+  const returns = sigs.map(s => s.return_pct || 0);
+
+  const rCtx = document.getElementById('returnChart');
+  if (rCtx) {
+    returnChartInst = new Chart(rCtx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: returns,
+          backgroundColor: returns.map(v => v >= 0 ? 'rgba(68,221,136,0.6)' : 'rgba(255,68,68,0.6)'),
+          borderColor: returns.map(v => v >= 0 ? '#44DD88' : '#FF4444'),
+          borderWidth: 1,
+          borderRadius: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            grid: { color: 'rgba(245,245,245,0.08)' },
+            ticks: { callback: v => v + '%', color: '#8b949e' }
+          },
+          x: { grid: { display: false }, ticks: { color: '#8b949e', maxRotation: 45, font: { size: 9 } } }
+        }
+      }
+    });
+  }
+
+  // Segment comparison chart
+  const segLabels = Object.keys(segs).filter(k => (segs[k]?.count||0) > 0);
+  const segReturns = segLabels.map(k => segs[k]?.avg || 0);
+  const segWins = segLabels.map(k => segs[k]?.win_rate || 0);
+
+  const sCtx = document.getElementById('segmentChart');
+  if (sCtx && segLabels.length) {
+    segmentChartInst = new Chart(sCtx, {
+      type: 'bar',
+      data: {
+        labels: segLabels,
+        datasets: [
+          {
+            label: '平均收益',
+            data: segReturns,
+            backgroundColor: 'rgba(88,166,255,0.4)',
+            borderColor: '#58a6ff',
+            borderWidth: 1,
+            borderRadius: 2,
+            yAxisID: 'y',
+          },
+          {
+            label: '胜率',
+            data: segWins,
+            backgroundColor: 'rgba(210,153,29,0.3)',
+            borderColor: '#d2991d',
+            borderWidth: 1,
+            borderRadius: 2,
+            yAxisID: 'y1',
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#8b949e', boxWidth: 10, padding: 10, font: { size: 10 } } }
+        },
+        scales: {
+          y: {
+            type: 'linear',
+            position: 'left',
+            grid: { color: 'rgba(245,245,245,0.08)' },
+            ticks: { callback: v => v + '%', color: '#58a6ff' },
+            title: { display: true, text: '平均收益 %', color: '#58a6ff', font: { size: 10 } }
+          },
+          y1: {
+            type: 'linear',
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            min: 0, max: 100,
+            ticks: { callback: v => v + '%', color: '#d2991d' },
+            title: { display: true, text: '胜率 %', color: '#d2991d', font: { size: 10 } }
+          },
+          x: { grid: { display: false }, ticks: { color: '#8b949e', font: { size: 10 } } }
+        }
+      }
+    });
+  }
+}
+
 // --- Events ---
 function wire() {
   document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
@@ -943,16 +1221,21 @@ async function init() {
   wire();
   renderNews(primaryNews,'primary-news');
   renderNews(recommendedNews,'recommended-news');
-  [watchlistPayload, reportsPayload, mosaicPayload] = await Promise.all([
+  [watchlistPayload, reportsPayload, mosaicPayload, backtestPayload] = await Promise.all([
     loadJson('data/watchlist_latest.json',{summary:{},watchlist:[]}),
     loadJson('data/reports_latest.json',fallbackReports),
-    loadJson('data/market_mosaic_latest.json',fallbackMosaic)
+    loadJson('data/market_mosaic_latest.json',fallbackMosaic),
+    loadJson('data/backtest_latest.json',null)
   ]);
   renderMetrics();
   renderReports();
   renderMosaic();
   renderWatchlistCloud();
   renderWatchlist();
+  if (backtestPayload) {
+    renderHoldings();
+    renderBacktest();
+  }
 }
 
 init();

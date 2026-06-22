@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-06-23T07:08:34+08:00",
+  "generated_at": "2026-06-23T07:10:08+08:00",
   "latest_market_timestamp": "2026-06-22 15:00:03 +0800",
   "data_source": {
     "name": "RSSCAST",
@@ -86,8 +86,8 @@
     ]
   },
   "backtest": {
-    "run_id": 3,
-    "run_at": "2026-06-23 06:48:13.572642",
+    "run_id": 4,
+    "run_at": "2026-06-23 07:09:59.959110",
     "run_date": "2026-06-23",
     "run_status": "partial",
     "run_signal_count": 4,
