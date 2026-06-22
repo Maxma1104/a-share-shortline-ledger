@@ -13,9 +13,11 @@
 - 在线首页：<https://maxma1104.github.io/a-share-shortline-ledger/>
 - 关注池 Markdown：[docs/watchlist.md](docs/watchlist.md)
 - 关注池 JSON：[docs/data/watchlist_latest.json](docs/data/watchlist_latest.json)
+- **策略回测 + 持仓绩效**：[在线回测面板](https://maxma1104.github.io/a-share-shortline-ledger/)（打开后点「策略回测+持仓」标签）
+- 回测原始数据：[docs/data/backtest_latest.json](docs/data/backtest_latest.json)
 - 自动化规则：[docs/watchlist_rules.md](docs/watchlist_rules.md)
 
-公开关注池每个工作日北京时间 **18:00** 自动刷新。普通用户不需要配置 Token，不需要运行脚本，直接打开入口即可查看。
+公开关注池每个工作日北京时间 **18:00** 自动刷新。回测数据每次运行独立存储，不可覆写。普通用户不需要配置 Token，不需要运行脚本，直接打开入口即可查看。
 
 ### 项目做什么
 
@@ -88,9 +90,11 @@ The core workflow is simple: refresh data first, inspect the watchlist second, a
 - Live homepage: <https://maxma1104.github.io/a-share-shortline-ledger/>
 - Watchlist Markdown: [docs/watchlist.md](docs/watchlist.md)
 - Watchlist JSON: [docs/data/watchlist_latest.json](docs/data/watchlist_latest.json)
+- **Strategy Backtest + Position Performance**: [Online Backtest Dashboard](https://maxma1104.github.io/a-share-shortline-ledger/) (open and click the "策略回测+持仓" tab)
+- Backtest raw data: [docs/data/backtest_latest.json](docs/data/backtest_latest.json)
 - Automation rules: [docs/watchlist_rules.md](docs/watchlist_rules.md)
 
-The public watchlist refreshes every weekday at **18:00 China Standard Time**. Visitors do not need tokens, setup, or local scripts.
+The public watchlist refreshes every weekday at **18:00 China Standard Time**. Backtest snapshots are stored independently per run and never overwritten. Visitors do not need tokens, setup, or local scripts.
 
 ### What It Does
 
