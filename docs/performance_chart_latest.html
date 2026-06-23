@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>策略回测绩效报告｜2026-06-23</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#c9d1d9; --accent:#58a6ff; --green:#3fb950; --red:#f85149; --yellow:#d2991d; --muted:#8b949e; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; padding:20px 24px; max-width:1100px; margin:0 auto; }
+  h1 { font-size:22px; margin-bottom:2px; letter-spacing:-0.3px; }
+  .subtitle { color:var(--muted); font-size:12px; margin-bottom:18px; display:flex; gap:16px; align-items:center; }
+  .alert { background:#1a1a2e; border:1px solid var(--yellow); border-radius:6px; padding:10px 14px; margin-bottom:16px; font-size:12px; color:var(--yellow); line-height:1.5; }
+  .kpi-row { display:grid; grid-template-columns: repeat(5,1fr); gap:10px; margin-bottom:16px; }
+  .kpi { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:12px 10px; text-align:center; }
+  .kpi-val { font-size:26px; font-weight:700; line-height:1.1; }
+  .kpi-lbl { font-size:11px; color:var(--muted); margin-top:3px; }
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:16px; }
+  .grid3 { display:grid; grid-template-columns: 1fr 2fr; gap:12px; margin-bottom:16px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:14px; }
+  .card h3 { font-size:13px; margin-bottom:10px; color:var(--accent); font-weight:600; }
+  .card canvas { max-height:260px; }
+  .full { grid-column:1/-1; }
+  table { width:100%; border-collapse:collapse; font-size:12px; margin-top:6px; }
+  th,td { padding:7px 10px; text-align:left; border-bottom:1px solid var(--border); }
+  th { color:var(--muted); font-weight:500; font-size:11px; }
+  .hi { color:var(--red); font-weight:700; }
+  .up { color:var(--green); }
+  .dn { color:var(--red); }
+  .tag { display:inline-block; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:600; }
+  .tag-pending { background:rgba(210,153,29,0.15); color:var(--yellow); }
+  .insight { background:rgba(88,166,255,0.06); border:1px solid rgba(88,166,255,0.2); border-radius:6px; padding:12px 14px; margin-top:16px; font-size:12px; line-height:1.7; }
+  .insight strong { color:var(--accent); }
+  .footer { margin-top:16px; font-size:10px; color:var(--muted); text-align:center; border-top:1px solid var(--border); padding-top:12px; }
+</style>
+</head>
+<body>
+
+<h1>📊 策略回测绩效报告</h1>
+<div class="subtitle">
+  <span>2026-06-23（周二）</span>
+  <span>回测运行 #4 | partial</span>
+</div>
+
+<div class="alert">
+  <strong>⏱️ 数据口径</strong>：回测运行 #4，执行于 2026-06-23 07:09:59.959110。<br>
+  数据来源：RSSCAST + 上证指数（Sina Finance API）。每次运行独立存储，历史不可覆写。
+</div>
+
+<!-- KPI Row -->
+<div class="kpi-row">
+  <div class="kpi"><div class="kpi-val" style="color:var(--accent)">4</div><div class="kpi-lbl">策略信号</div></div>
+  <div class="kpi"><div class="kpi-val" style="color:var(--red)">1</div><div class="kpi-lbl">≥80 高分</div></div>
+  <div class="kpi"><div class="kpi-val" style="color:var(--green)">+0.00%</div><div class="kpi-lbl">组合预估收益</div></div>
+  <div class="kpi"><div class="kpi-val" style="color:var(--green)">+0.00%</div><div class="kpi-lbl">同期上证指数</div></div>
+  <div class="kpi"><div class="kpi-val" style="color:var(--green)">+0.00%</div><div class="kpi-lbl">超额收益 α</div></div>
+</div>
+
+<!-- Row 1: Score + Strategy vs Benchmark -->
+<div class="grid2">
+  <div class="card">
+    <h3>🎯 信号分数分布</h3>
+    <canvas id="scoreChart"></canvas>
+  </div>
+  <div class="card">
+    <h3>📈 策略组合 vs 上证指数 · 累计收益曲线</h3>
+    <canvas id="benchmarkChart"></canvas>
+  </div>
+</div>
+
+<!-- Row 2: Estimated returns + Market context -->
+<div class="grid3">
+  <div class="card">
+    <h3>💰 信号预估收益（触发价 → 最新收盘）</h3>
+    <canvas id="estReturnChart"></canvas>
+  </div>
+  <div class="card">
+    <h3>🏛️ 上证指数近 10 日走势 + 信号触发日标注</h3>
+    <canvas id="shIndexChart"></canvas>
+  </div>
+</div>
+
+<!-- Signal Table -->
+<div class="card full">
+  <h3>📋 策略信号明细</h3>
+  <table>
+    <thead><tr>
+      <th>代码</th><th>名称</th><th>分数</th><th>触发日期</th><th>触发价</th>
+      <th>最新收盘</th><th>价差%</th><th>1日收益</th><th>5日收益</th><th>最大浮盈</th><th>最大浮亏</th><th>状态</th>
+    </tr></thead>
+    <tbody>
+      <tr><td>002579</td><td>中京电子</td><td class="hi">92</td><td>2026-06-23</td><td>20.32</td><td>-</td><td class="">-</td><td class="">-</td><td class="">-</td><td class="up">-</td><td class="dn">-</td><td><span class="tag tag-pending">pending</span></td></tr>
+<tr><td>000725</td><td>京东方A</td><td class="">74</td><td>2026-06-23</td><td>6.55</td><td>-</td><td class="">-</td><td class="">-</td><td class="">-</td><td class="up">-</td><td class="dn">-</td><td><span class="tag tag-pending">pending</span></td></tr>
+<tr><td>002463</td><td>沪电股份</td><td class="">72</td><td>2026-06-23</td><td>147.9</td><td>-</td><td class="">-</td><td class="">-</td><td class="">-</td><td class="up">-</td><td class="dn">-</td><td><span class="tag tag-pending">pending</span></td></tr>
+<tr><td>600111</td><td>北方稀土</td><td class="">67</td><td>2026-06-23</td><td>51.4</td><td>-</td><td class="">-</td><td class="">-</td><td class="">-</td><td class="up">-</td><td class="dn">-</td><td><span class="tag tag-pending">pending</span></td></tr>
+
+    </tbody>
+  </table>
+</div>
+
+<!-- Strategy Positions Table -->
+<div class="card full">
+  <h3>🎯 策略持仓（已触发信号）</h3>
+  <p style="color:var(--muted);font-size:12px;padding:8px 0">暂无已触发信号。策略持仓将在信号确认入场后自动生成。</p>
+</div>
+
+<!-- Insight -->
+<div class="insight">
+  <strong>💡 策略解读</strong><br>
+  · <strong>高分信号</strong>：中京电子(92分)，共 1 只。<br>
+  · 样本量 <5，统计结论置信度低，继续积累信号。
+</div>
+
+<div class="footer">
+  数据来源：RSSCAST · https://app-cn.rsscast.io &nbsp;|&nbsp; 上证指数：Sina Finance API &nbsp;|&nbsp; 回测运行 #4 · 2026-06-23 07:09:59.959110
+</div>
+
+<script>
+Chart.defaults.color = '#8b949e';
+Chart.defaults.borderColor = '#30363d';
+Chart.defaults.font.family = "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+Chart.defaults.font.size = 10;
+const G = 'rgba(48,54,61,0.4)';
+const C = { blue:'#58a6ff', green:'#3fb950', red:'#f85149', yellow:'#d2991d', purple:'#bc8cff', orange:'#f0883e', white:'rgba(255,255,255,0.25)' };
+
+// ===== Chart 1: Score Distribution =====
+new Chart(document.getElementById('scoreChart'), {
+  type: 'bar',
+  data: {
+    labels: ["\u4e2d\u4eac\u7535\u5b50", "\u4eac\u4e1c\u65b9A", "\u6caa\u7535\u80a1\u4efd", "\u5317\u65b9\u7a00\u571f"],
+    datasets: [{
+      data: [92, 74, 72, 67],
+      backgroundColor: ["#f85149", "#d2991d", "#d2991d", "#d2991d"],
+      borderRadius: 3, borderWidth:0
+    }]
+  },
+  options: {
+    responsive:true, plugins:{legend:{display:false}},
+    scales: { y:{min:0,max:100,grid:{color:G},ticks:{callback:v=>v+'分'}}, x:{grid:{display:false}} }
+  }
+});
+
+// ===== Chart 2: Strategy vs Benchmark Cumulative Return =====
+new Chart(document.getElementById('benchmarkChart'), {
+  type: 'line',
+  data: {
+    labels: ["2026-06-23", "2026-06-23"],
+    datasets: [
+      { label:'策略组合 (等权)', data:[0, 0.0], borderColor:C.green, backgroundColor:'rgba(63,185,80,0.1)', fill:true, tension:0.3, pointRadius:5, pointBackgroundColor:C.green, borderWidth:2.5 },
+      { label:'上证指数', data:[0, 0.0], borderColor:C.white, borderDash:[5,3], tension:0.3, pointRadius:5, pointBackgroundColor:'rgba(255,255,255,0.6)', borderWidth:2 },
+      { label:'超额 α', data:[0, 0.0], borderColor:C.blue, borderDash:[2,2], tension:0, pointRadius:4, pointBackgroundColor:C.blue, borderWidth:2 },
+    ]
+  },
+  options: {
+    responsive:true,
+    plugins: {
+      legend:{position:'bottom',labels:{boxWidth:10,padding:10,usePointStyle:true,font:{size:10}}},
+      tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.raw>=0?'+':'')+ctx.raw.toFixed(2)+'%'}}
+    },
+    scales: {
+      y: { grid:{color:G}, ticks:{callback:v=>v+'%'}, title:{display:true,text:'累计收益 %',font:{size:10}} },
+      x: { grid:{display:false} }
+    }
+  }
+});
+
+// ===== Chart 3: Estimated Return (Horizontal Bar) =====
+new Chart(document.getElementById('estReturnChart'), {
+  type: 'bar',
+  data: {
+    labels: ["\u4e2d\u4eac\u7535\u5b50", "\u4eac\u4e1c\u65b9A", "\u6caa\u7535\u80a1\u4efd", "\u5317\u65b9\u7a00\u571f"],
+    datasets: [{
+      data: [0.0, 0.0, 0.0, 0.0],
+      backgroundColor: ["#3fb950", "#3fb950", "#3fb950", "#3fb950"],
+      borderRadius: 3, borderWidth:0
+    }]
+  },
+  options: {
+    indexAxis:'y', responsive:true, plugins:{legend:{display:false}},
+    scales: { x:{grid:{color:G},ticks:{callback:v=>v+'%'}}, y:{grid:{display:false}} }
+  }
+});
+
+// ===== Chart 4: SH Index 10-day Trend + Signal Trigger Marker =====
+new Chart(document.getElementById('shIndexChart'), {
+  type: 'line',
+  data: {
+    labels: ["06-08", "06-09", "06-10", "06-11", "06-12", "06-15", "06-16", "06-17", "06-18", "06-22"],
+    datasets: [
+      { label:'上证指数', data:[3959.338, 4010.031, 3993.226, 3987.015, 4031.513, 4096.472, 4091.892, 4108.076, 4090.481, 4163.097], borderColor:C.white, tension:0.3, pointRadius:3, borderWidth:2, fill:false },
+      { label:'信号触发日 (06-23)', data:[null, null, null, null, null, null, null, null, null, null], borderColor:C.red, pointRadius:6, pointBackgroundColor:C.red, pointStyle:'rectRot', showLine:false, borderWidth:0 },
+    ]
+  },
+  options: {
+    responsive:true,
+    plugins: {
+      legend:{position:'bottom',labels:{boxWidth:10,padding:10,usePointStyle:true,font:{size:10}}},
+      tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.raw.toFixed(0)}}
+    },
+    scales: {
+      y: { grid:{color:G}, ticks:{callback:v=>(v/1000).toFixed(1)+'k'} },
+      x: { grid:{display:false} }
+    }
+  }
+});
+</script>
+
+</body>
+</html>

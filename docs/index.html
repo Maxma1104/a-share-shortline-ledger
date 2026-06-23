@@ -589,65 +589,17 @@
 
     <!-- BACKTEST PAGE -->
     <section class="page" id="backtest-page">
-      <!-- Holdings KPIs -->
       <div class="section-head" style="margin-top:0">
         <div>
-          <h3>持仓概览</h3>
-          <div class="sub">当前持仓、盈亏和止损位。最新行情快照时间见下方脚注。</div>
-        </div>
-        <span class="pill gold" id="holdings-count-pill">持仓 —</span>
-      </div>
-      <div class="grid cols-4" id="holdings-kpi"></div>
-
-      <div class="section-head">
-        <div>
-          <h3>持仓明细</h3>
-          <div class="sub">按仓位占比排序。</div>
-        </div>
-      </div>
-      <div id="holdings-table"></div>
-      <div class="source-line" id="holdings-source">读取持仓数据 …</div>
-
-      <!-- Backtest -->
-      <div class="section-head">
-        <div>
           <h3>策略回测绩效</h3>
-          <div class="sub">基于最新回测运行，每次独立存储不可覆写。数据来源 RSSCAST。</div>
+          <div class="sub">Chart.js 深色主题看板，每次收盘后自动更新。数据来源 RSSCAST。</div>
         </div>
         <span class="pill cyan" id="backtest-run-pill">回测运行 —</span>
       </div>
-      <div class="grid cols-4" id="backtest-kpi"></div>
-
-      <!-- Charts -->
-      <div class="grid cols-2" style="margin-top:14px">
-        <div class="panel" style="min-height:260px">
-          <h4 style="font-size:13px;margin-bottom:10px;color:var(--grey-70)">📈 信号收益分布</h4>
-          <canvas id="returnChart"></canvas>
-        </div>
-        <div class="panel" style="min-height:260px">
-          <h4 style="font-size:13px;margin-bottom:10px;color:var(--grey-70)">🎯 分数段对比</h4>
-          <canvas id="segmentChart"></canvas>
-        </div>
-      </div>
-
-      <!-- Signal Table -->
-      <div class="section-head">
-        <div><h3>策略信号明细</h3></div>
-      </div>
-      <div id="backtest-table"></div>
-
-      <!-- Pending Signals -->
-      <div class="section-head">
-        <div><h3>待回测信号</h3><div class="sub">信号已生成但尚未获得回测数据（需等收盘行情快照落库）。</div></div>
-      </div>
-      <div id="pending-table"></div>
-
-      <!-- Optimization Notes -->
-      <div class="section-head">
-        <div><h3>策略优化建议</h3></div>
-      </div>
-      <div id="optimization-notes" class="empty-state">等待加载回测数据 …</div>
-
+      <iframe id="backtest-iframe" src="performance_chart_latest.html"
+              style="width:100%;height:calc(100vh - 140px);border:none;border-radius:6px;"
+              title="策略回测绩效报告">
+      </iframe>
       <div class="source-line" id="backtest-source">回测数据来源 RSSCAST · https://app-cn.rsscast.io · 每次运行独立存储</div>
     </section>
 
@@ -684,7 +636,7 @@ const pageMeta = {
   news:     { title:'新闻雷达', sub:'常用新闻窗口、宏观行情云图和关键外部信息源集中在一个页面。' },
   trading:  { title:'交易', sub:'暂不开放。未来对接交易系统和交易 agent，当前只保留设计边界。' },
   watchlist:{ title:'关注池', sub:'公开关注池股票可点击进入策略页；低频和剔除候选不作为主动新开仓入口。' },
-  backtest:{ title:'策略回测+持仓', sub:'持仓盈亏、策略回测绩效和信号明细。每次运行独立存储不可覆写。' },
+  backtest:{ title:'策略回测绩效', sub:'Chart.js 深色主题看板。每次收盘后自动更新，数据来源 RSSCAST。' },
   strategy: { title:'个股策略页', sub:'基于最新公开快照重新生成策略报告。' }
 };
 
