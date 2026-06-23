@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>策略回测绩效报告｜2026-06-23</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#c9d1d9; --accent:#58a6ff; --green:#3fb950; --red:#f85149; --yellow:#d2991d; --muted:#8b949e; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; padding:20px 24px; max-width:1100px; margin:0 auto; }
+  h1 { font-size:22px; margin-bottom:2px; }
+  .subtitle { color:var(--muted); font-size:12px; margin-bottom:18px; }
+  .alert { background:#1a1a2e; border:1px solid var(--yellow); border-radius:6px; padding:10px 14px; margin-bottom:16px; font-size:12px; color:var(--yellow); }
+  .kpi-row { display:grid; grid-template-columns: repeat(5,1fr); gap:10px; margin-bottom:16px; }
+  .kpi { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:12px 10px; text-align:center; }
+  .kpi-val { font-size:26px; font-weight:700; }
+  .kpi-lbl { font-size:11px; color:var(--muted); margin-top:3px; }
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:16px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:14px; }
+  .card h3 { font-size:13px; margin-bottom:10px; color:var(--accent); }
+  .full { grid-column:1/-1; }
+  table { width:100%; border-collapse:collapse; font-size:12px; margin-top:6px; }
+  th,td { padding:7px 10px; text-align:left; border-bottom:1px solid var(--border); }
+  th { color:var(--muted); font-size:11px; }
+  .hi { color:var(--red); font-weight:700; }
+  .tag-pending { display:inline-block; padding:1px 6px; border-radius:3px; font-size:10px; background:rgba(210,153,29,0.15); color:var(--yellow); }
+  .insight { background:rgba(88,166,255,0.06); border:1px solid rgba(88,166,255,0.2); border-radius:6px; padding:12px 14px; margin-top:16px; font-size:12px; line-height:1.7; }
+  .footer { margin-top:16px; font-size:10px; color:var(--muted); text-align:center; border-top:1px solid var(--border); padding-top:12px; }
+</style>
+</head>
+<body>
+
+<h1>策略回测绩效报告</h1>
+<div class="subtitle">2026-06-23（周二） · 回测运行 #5</div>
+
+<div class="alert">
+  <strong>数据口径</strong>：RSSCAST 行情快照 2026-06-22 15:00。<br>
+  4 条策略信号已记录，回测结果将在后续交易日收盘后自动计算。
+</div>
+
+<div class="kpi-row">
+  <div class="kpi"><div class="kpi-val" style="color:var(--accent)">4</div><div class="kpi-lbl">策略信号</div></div>
+  <div class="kpi"><div class="kpi-val" style="color:var(--red)">1</div><div class="kpi-lbl">≥80 高分</div></div>
+  <div class="kpi"><div class="kpi-val" style="color:var(--muted)">待计算</div><div class="kpi-lbl">组合收益</div></div>
+  <div class="kpi"><div class="kpi-val" style="color:var(--muted)">待计算</div><div class="kpi-lbl">同期上证</div></div>
+  <div class="kpi"><div class="kpi-val" style="color:var(--muted)">待计算</div><div class="kpi-lbl">超额 α</div></div>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <h3>信号分数分布</h3>
+    <canvas id="scoreChart"></canvas>
+  </div>
+  <div class="card">
+    <h3>信号触发价 vs 最新收盘</h3>
+    <canvas id="priceChart"></canvas>
+  </div>
+</div>
+
+<div class="card full">
+  <h3>策略信号明细</h3>
+  <table>
+    <thead><tr>
+      <th>代码</th><th>名称</th><th>分数</th><th>触发价</th>
+      <th>最新收盘</th><th>价差%</th><th>状态</th>
+    </tr></thead>
+    <tbody>
+<tr>
+      <td>002579</td><td>中京电子</td>
+      <td class="hi">92</td>
+      <td>20.32</td><td>-</td>
+      <td>-</td>
+      <td><span class="tag-pending">pending</span></td>
+    </tr>
+<tr>
+      <td>000725</td><td>京东方A</td>
+      <td class="">74</td>
+      <td>6.55</td><td>-</td>
+      <td>-</td>
+      <td><span class="tag-pending">pending</span></td>
+    </tr>
+<tr>
+      <td>002463</td><td>沪电股份</td>
+      <td class="">72</td>
+      <td>147.9</td><td>-</td>
+      <td>-</td>
+      <td><span class="tag-pending">pending</span></td>
+    </tr>
+<tr>
+      <td>600111</td><td>北方稀土</td>
+      <td class="">67</td>
+      <td>51.4</td><td>-</td>
+      <td>-</td>
+      <td><span class="tag-pending">pending</span></td>
+    </tr>
+</tbody></table></div>
+
+<div class="insight">
+  <strong>策略解读</strong><br>
+  · <strong>高分信号</strong>：中京电子(92分)，龙虎榜上榜+换手活跃，短线资金确认强。<br>
+  · <strong>观察信号</strong>：京东方A(74分)、沪电股份(72分)、北方稀土(67分)，等回踩确认。<br>
+  · 样本量 <10，统计结论置信度低。持续积累信号后，系统将自动生成胜率、盈亏比和优化建议。
+</div>
+
+<div class="footer">
+  数据来源：RSSCAST · https://app-cn.rsscast.io &nbsp;|&nbsp; 信号打分模型 v1.0 &nbsp;|&nbsp; 回测运行 #5 · 2026-06-23
+</div>
+
+<script>
+Chart.defaults.color = '#8b949e';
+Chart.defaults.borderColor = '#30363d';
+Chart.defaults.font.size = 10;
+const G = 'rgba(48,54,61,0.4)';
+const names = {json.dumps(names, ensure_ascii=False)};
+const scores = {json.dumps(scores)};
+const codes = {json.dumps(codes)};
+
+new Chart(document.getElementById('scoreChart'), {{
+  type: 'bar',
+  data: {{
+    labels: names,
+    datasets: [{{
+      data: scores,
+      backgroundColor: scores.map(s => s >= 80 ? '#f85149' : s >= 70 ? '#d2991d' : '#58a6ff'),
+      borderRadius: 3
+    }}]
+  }},
+  options: {{
+    responsive: true, plugins: {{ legend: {{ display: false }} }},
+    scales: {{ y: {{ min:0, max:100, grid: {{ color:G }}, ticks: {{ callback: v => v+'分' }} }}, x: {{ grid: {{ display:false }} }} }}
+  }}
+}});
+</script>
+</body>
+</html>
